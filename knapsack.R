@@ -1,0 +1,118 @@
+rm(list=ls())
+
+
+# weights,value and capacity ---------
+
+W <- c(3,1,3,4,2)
+
+V <- c(2,2,4,5,3)
+
+capacity <- 7
+
+
+
+
+knapsack <- function(cap,weight,values){
+  
+  
+  if (is.null(weight) || is.null(values) || length(weight) != length(values) || cap < 0) {
+    stop("Invalid input")
+  }
+  
+  values <- c(0,values)
+  weight_mod <- c(0,weight)
+  
+  # get length of value vector
+  v_length <- length(values)
+  it_index <- c(rep(0,length(values)))
+  
+  # store capacity seperatly
+  cap_val <- c(rep(0,capacity))
+  cap_current <- cap
+  
+  
+  # create empty matrix for DP
+  DP_matrix <- matrix(0L,nrow = v_length, ncol = cap+1)
+  
+  # change column and row names to follow the example from the video better
+  colnames(DP_matrix) <- as.character(c(0:cap))
+  rownames(DP_matrix) <- as.character(c(0:(v_length-1)))
+  
+  message("the empty DP matrix looks like this: \n")
+  print(DP_matrix)
+  cat("\n")
+  
+  for (i in 1:nrow(DP_matrix)) {
+    
+    current_w <- weight_mod[[i]]
+    current_v <- values[[i]]
+    
+    for(j in 1:ncol(DP_matrix)){
+      
+      # CASE 1: We dont pick the element
+      if(i>1){
+        DP_matrix[[i,j]] = DP_matrix[[i-1,j]]
+      }
+      
+    
+      # CASE 2: Add new value. 
+      if(j>=current_w && (j - current_w) >= 1 && i>1 &&
+         DP_matrix[i-1,j-current_w]+current_v > DP_matrix[i,j]){
+        
+        DP_matrix[i,j] <- DP_matrix[i-1,j-current_w]+ current_v
+        
+        
+      }
+      
+    
+    }
+    
+  }
+  
+  # Backtrack
+  for(k in nrow(DP_matrix):1){
+    
+    if(k>0 && cap_current>0 && DP_matrix[k,cap_current+1] != DP_matrix[k-1,cap_current+1]){
+      
+
+      cap_current <- cap_current - weight_mod[k]
+    
+      # print(paste("current weight:",cap_current))
+      item_index <- k-1
+      it_index[k] <- item_index
+      # print(paste("current item index:",item_index))
+      
+      
+    }
+    
+  }
+  
+  
+  
+  # clean up and value extraction
+  it_index <- it_index[it_index != 0] 
+  
+  cap_val <- weight[it_index]
+  
+  max_weight <- sum(cap_val) 
+  
+  
+  # final print statements
+  
+  message("The filled matrix looks like this: \n")
+  print(DP_matrix)
+  
+  message("\nThe max weight is: \n")
+  print(paste(max_weight,"kg"))
+  
+  message("\nThe selected items are: \n")
+  cat(paste("Item",it_index))
+  
+  return(list(max_weight=max_weight,it_index=it_index,cap_val=cap_val))
+
+}
+
+
+# call function
+
+t <- knapsack(cap=capacity,weight=W,values = V)
